@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BNUSHOP Studio | Admin Dashboard</title>
+  
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#18181B">
+  
+  <!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Admin Stylesheet -->
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       LOGIN SCREEN (KHUSUS PEMILIK)
+       ========================================================================== -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-icon">
+        <i class="fas fa-lock"></i>
+      </div>
+      <h1 class="login-title" style="font-family: 'Playfair Display', serif; font-size: 1.85rem;">Olivienne Studio</h1>
+      <p class="login-desc">Masukkan password untuk mengelola koleksi rekomendasi belanja Anda.</p>
+
+      <div class="login-error" id="loginError">Password salah!</div>
+
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label class="form-label" for="adminPasswordInput">Password / PIN Admin</label>
+          <div class="input-password-wrapper">
+            <input 
+              type="password" 
+              id="adminPasswordInput" 
+              class="login-input" 
+              placeholder="Masukkan password admin..." 
+              required 
+              autocomplete="current-password"
+            />
+            <button type="button" class="toggle-password-btn" id="togglePasswordBtn" title="Lihat password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <small style="display:block; margin-top:0.35rem; color:#94A3B8; font-size:0.75rem;">
+            Default password bawaan: <code>admin123</code>
+          </small>
+        </div>
+
+        <button type="submit" class="btn-login-submit">
+          <i class="fas fa-sign-in-alt"></i> Masuk ke Dashboard
+        </button>
+      </form>
+
+      <div class="login-footer-link">
+        <a href="index.html">← Kembali ke Website Katalog</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ADMIN APP DASHBOARD (SETELAH LOGIN BERHASIL)
+       ========================================================================== -->
+  <div class="admin-app" id="adminApp">
+    
+    <!-- Top Navbar -->
+    <header class="admin-navbar">
+      <div class="navbar-container">
+        <div class="admin-brand">
+          <span style="font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.01em;">BNUSHOP</span>
+          <span class="admin-badge">Studio Admin</span>
+        </div>
+
+        <div class="navbar-actions">
+          <a href="index.html" target="_blank" class="btn-nav btn-nav-site" title="Buka website publik">
+            <i class="fas fa-external-link-alt"></i>
+            <span>Lihat Website</span>
+          </a>
+          <button type="button" class="btn-nav btn-nav-site" onclick="admin.openPasswordModal()" title="Ubah password login">
+            <i class="fas fa-key"></i>
+            <span>Ganti Password</span>
+          </button>
+          <button type="button" class="btn-nav btn-nav-logout" onclick="admin.logout()" title="Keluar">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Keluar</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="admin-main">
+      
+      <!-- Statistics Grid -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div>
+            <div class="stat-info-title">Total Postingan</div>
+            <div class="stat-info-val" id="statTotalProducts">0</div>
+          </div>
+          <div class="stat-icon-wrapper stat-icon-products">
+            <i class="fas fa-boxes"></i>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <div class="stat-info-title">Produk Pilihan</div>
+            <div class="stat-info-val" id="statFeaturedProducts">0</div>
+          </div>
+          <div class="stat-icon-wrapper stat-icon-featured">
+            <i class="fas fa-star"></i>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <div class="stat-info-title">Dari Tokopedia</div>
+            <div class="stat-info-val" id="statTokopediaProducts">0</div>
+          </div>
+          <div class="stat-icon-wrapper stat-icon-tokopedia">
+            <i class="fas fa-store"></i>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <div class="stat-info-title">Total Kategori</div>
+            <div class="stat-info-val" id="statCategoriesCount">0</div>
+          </div>
+          <div class="stat-icon-wrapper stat-icon-categories">
+            <i class="fas fa-tags"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action Toolbar -->
+      <section class="toolbar-section">
+        <div class="toolbar-search">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            id="adminSearchInput" 
+            placeholder="Cari postingan produk (judul, platform, kategori)..." 
+          />
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="button" class="btn-add-product" onclick="admin.openAddModal()">
+            <i class="fas fa-plus-circle"></i>
+            <span>Tambah Postingan Baru</span>
+          </button>
+          
+          <button type="button" class="btn-secondary-action" onclick="admin.exportData()" title="Salin kode data untuk disimpan permanen ke js/data.js">
+            <i class="fas fa-file-export"></i>
+            <span>Ekspor ke data.js</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action" style="color: #EF4444;" onclick="admin.resetToDefault()" title="Kembalikan semua postingan ke sampel awal">
+            <i class="fas fa-undo"></i>
+            <span>Reset Bawaan</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Products Management Table -->
+      <section class="table-card">
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;" title="Produk Pilihan Utama">⭐</th>
+                <th>Produk</th>
+                <th>Kategori</th>
+                <th>Platform Toko</th>
+                <th>Harga</th>
+                <th style="width: 120px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody">
+              <!-- Baris data di-render oleh admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL FORM TAMBAH & EDIT POSTINGAN
+       ========================================================================== -->
+  <div class="admin-modal-overlay" id="productFormModal">
+    <div class="admin-modal-box">
+      <div class="admin-modal-header">
+        <h3 id="modalFormTitle">Tambah Postingan Produk Baru</h3>
+        <button type="button" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#64748B;" onclick="admin.closeProductModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form id="productForm">
+        <div class="admin-modal-body">
+          
+          <div class="admin-form-group">
+            <label for="formTitle">Judul Nama Produk *</label>
+            <input type="text" id="formTitle" class="admin-form-control" placeholder="Contoh: Kaos Polos Oversize Cotton Combed 24s Premium" required />
+          </div>
+
+          <div class="form-grid-2">
+            <div class="admin-form-group">
+              <label for="formCategory">Kategori *</label>
+              <select id="formCategory" class="admin-form-control">
+                <option value="fashion">👗 Fashion</option>
+                <option value="elektronik">📱 Elektronik</option>
+                <option value="aksesori">💍 Aksesori</option>
+                <option value="rumah-tangga">🏠 Rumah Tangga</option>
+                <option value="kecantikan">💄 Kecantikan</option>
+              </select>
+            </div>
+
+            <div class="admin-form-group">
+              <label for="formPlatform">Platform Marketplace Utama *</label>
+              <select id="formPlatform" class="admin-form-control">
+                <option value="tokopedia">🟢 Tokopedia</option>
+                <option value="shopee">🟠 Shopee</option>
+                <option value="tiktok">⚫ TikTok Shop</option>
+                <option value="lazada">🔵 Lazada</option>
+                <option value="blibli">🔷 Blibli</option>
+                <option value="other">🌐 Toko Resmi / Lainnya</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="formProductUrl">Link Belanja Utama (URL Marketplace/Affiliate) *</label>
+            <input type="url" id="formProductUrl" class="admin-form-control" placeholder="Contoh: https://www.tokopedia.com/... atau https://shopee.co.id/..." required />
+          </div>
+
+          <div class="form-grid-2">
+            <div class="admin-form-group">
+              <label for="formSecondaryPlatform">Platform Toko Cadangan (Opsional)</label>
+              <select id="formSecondaryPlatform" class="admin-form-control">
+                <option value="">-- Tidak ada link kedua --</option>
+                <option value="tokopedia">🟢 Tokopedia</option>
+                <option value="shopee">🟠 Shopee</option>
+                <option value="tiktok">⚫ TikTok Shop</option>
+                <option value="lazada">🔵 Lazada</option>
+                <option value="blibli">🔷 Blibli</option>
+                <option value="other">🌐 Toko Resmi</option>
+              </select>
+            </div>
+
+            <div class="admin-form-group">
+              <label for="formSecondaryUrl">Link Belanja Cadangan (Opsional)</label>
+              <input type="url" id="formSecondaryUrl" class="admin-form-control" placeholder="Link toko kedua jika tersedia..." />
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="admin-form-group">
+              <label for="formPrice">Harga Jual (Rp) *</label>
+              <input type="number" id="formPrice" class="admin-form-control" placeholder="Contoh: 68000" min="0" required />
+            </div>
+
+            <div class="admin-form-group">
+              <label for="formOriginalPrice">Harga Coret / Asli (Rp, Opsional)</label>
+              <input type="number" id="formOriginalPrice" class="admin-form-control" placeholder="Contoh: 125000" min="0" />
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="formImage">Link URL Foto Produk</label>
+            <input type="url" id="formImage" class="admin-form-control" placeholder="https://images.unsplash.com/... atau link foto produk online" />
+            <div class="img-preview-box">
+              <img id="formImagePreview" src="" alt="Pratinjau Foto" class="img-preview-thumb" onerror="this.src=DEFAULT_PLACEHOLDER" />
+              <span style="font-size: 0.8rem; color: #64748B;">Pratinjau tampilan foto produk di katalog.</span>
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="formBadgeText">Label / Badge Khusus (Opsional)</label>
+            <input type="text" id="formBadgeText" class="admin-form-control" placeholder="Contoh: 🔥 Terlaris, ⭐ Pilihan Editor, Diskon 50%" />
+          </div>
+
+          <div class="admin-form-group">
+            <label for="formDescription">Deskripsi Produk Singkat</label>
+            <textarea id="formDescription" class="admin-form-control" placeholder="Jelaskan spesifikasi, bahan, atau manfaat barang..."></textarea>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="formRecommendation">Kenapa Kamu Merekomendasikan Barang Ini?</label>
+            <textarea id="formRecommendation" class="admin-form-control" placeholder="Tuliskan ulasan jujur atau keunggulan berdasarkan pengalamanmu..."></textarea>
+          </div>
+
+          <div class="admin-form-group">
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <input type="checkbox" id="formFeatured" style="width: 18px; height: 18px; accent-color: var(--admin-primary);" />
+              <span>Jadikan sebagai ⭐ <strong>Produk Pilihan Utama</strong> (Tampil di tab Rekomendasi Pilihan)</span>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary-action" onclick="admin.closeProductModal()">Batal</button>
+          <button type="submit" class="btn-add-product">
+            <i class="fas fa-save"></i> Simpan Postingan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL GANTI PASSWORD ADMIN
+       ========================================================================== -->
+  <div class="admin-modal-overlay" id="passwordModal">
+    <div class="admin-modal-box" style="max-width: 440px;">
+      <div class="admin-modal-header">
+        <h3>Ubah Password Admin</h3>
+        <button type="button" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#64748B;" onclick="admin.closePasswordModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form id="changePasswordForm">
+        <div class="admin-modal-body">
+          <div class="admin-form-group">
+            <label for="oldPassword">Password Saat Ini</label>
+            <input type="password" id="oldPassword" class="admin-form-control" placeholder="Password lama..." required />
+          </div>
+
+          <div class="admin-form-group">
+            <label for="newPassword">Password Baru</label>
+            <input type="password" id="newPassword" class="admin-form-control" placeholder="Minimal 4 karakter..." required />
+          </div>
+
+          <div class="admin-form-group">
+            <label for="confirmPassword">Konfirmasi Password Baru</label>
+            <input type="password" id="confirmPassword" class="admin-form-control" placeholder="Ulangi password baru..." required />
+          </div>
+        </div>
+
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary-action" onclick="admin.closePasswordModal()">Batal</button>
+          <button type="submit" class="btn-add-product">Simpan Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       TOAST NOTIFICATION
+       ========================================================================== -->
+  <div class="admin-toast" id="adminToast">
+    <i class="fas fa-check-circle"></i>
+    <span id="adminToastMessage">Notifikasi sukses</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
+

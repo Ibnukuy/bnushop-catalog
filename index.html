@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BNUSHOP | Katalog Kurasi Belanja Pilihan</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Koleksi rekomendasi barang belanja pilihan teruji dengan estetika modern, simpel, dan elegan dari Tokopedia, Shopee, TikTok Shop, dan toko terpercaya.">
+  <meta name="theme-color" content="#FAF9F5">
+  
+  <!-- Google Fonts: Playfair Display, Cormorant Garamond & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Main Quiet Luxury Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Subtle Announcement Bar -->
+  <aside class="announcement-bar">
+    KURASI REKOMENDASI PILIHAN TERBAIK &bull; TOKOPEDIA &bull; SHOPEE &bull; TIKTOK SHOP
+  </aside>
+
+  <!-- ==========================================================================
+       HEADER (EDITORIAL MINIMALIST STYLE LIKE OLIVIENNE)
+       ========================================================================== -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-content">
+        
+        <!-- Left Nav Links -->
+        <nav class="header-nav-left">
+          <a href="#" class="nav-link active" onclick="event.preventDefault(); app.setCategory('all');">SHOP</a>
+          <a href="#" class="nav-link" onclick="event.preventDefault(); app.setCategory('featured');">COLLECTIONS</a>
+          <a href="#aboutSection" class="nav-link">ABOUT</a>
+        </nav>
+
+        <!-- Center Luxury Serif Logo -->
+        <a href="index.html" class="brand-logo" onclick="event.preventDefault(); app.resetFilters(); window.scrollTo({top: 0, behavior: 'smooth'});">
+          <span class="brand-title">BNUSHOP</span>
+          <span class="brand-subtitle">Curated Edition</span>
+        </a>
+
+        <!-- Right Minimalist Utility Icons -->
+        <div class="header-actions">
+          <span class="currency-badge">IDR / RP</span>
+          
+          <button type="button" class="btn-header-icon" id="searchToggleBtn" title="Cari produk" onclick="app.toggleSearchDrawer()">
+            <i class="fas fa-search"></i>
+          </button>
+
+          <a href="admin.html" class="btn-header-icon" title="Login Pemilik" style="font-size: 0.95rem;">
+            <i class="far fa-user"></i>
+          </a>
+
+          <div class="btn-header-icon" title="Total Koleksi Produk">
+            <i class="fas fa-shopping-bag"></i>
+            <span class="bag-count" id="headerBagCount">0</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Expandable Search Drawer -->
+    <div class="search-drawer" id="searchDrawer">
+      <div class="container">
+        <div class="search-drawer-inner">
+          <i class="fas fa-search" style="color: var(--text-muted);"></i>
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-drawer-input" 
+            placeholder="Ketik pencarian barang pilihan..." 
+            autocomplete="off"
+          />
+          <button type="button" class="search-drawer-close" onclick="app.toggleSearchDrawer(false)">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       SUB-BAR (BREADCRUMB & ITEM COUNTER LIKE THE SCREENSHOT)
+       ========================================================================== -->
+  <section class="sub-bar-section">
+    <div class="container">
+      <div class="sub-bar-wrapper">
+        <!-- Breadcrumb on Left -->
+        <div class="breadcrumbs">
+          <a href="#" onclick="event.preventDefault(); app.resetFilters();">Shop</a>
+          <span class="separator">&bull;</span>
+          <span id="breadcrumbCategory">Curated Items</span>
+          <span class="separator">&bull;</span>
+          <span class="current" id="breadcrumbView">View All</span>
+        </div>
+
+        <!-- Counter & Filter on Right -->
+        <div class="sub-bar-right">
+          <span class="items-counter" id="itemsCountDisplay">0 items</span>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label for="sortSelect" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">Sort:</label>
+            <select id="sortSelect" style="font-size: 0.78rem; font-weight: 600; color: var(--text-main); cursor: pointer;">
+              <option value="recommended">Featured First</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Top Rated</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       CATEGORY NAVIGATION LIST (MINIMALIST HORIZONTAL SCROLL)
+       ========================================================================== -->
+  <nav class="category-nav-section" id="categoryNavSection">
+    <div class="container">
+      <div class="category-nav-list" id="categoryScroll">
+        <!-- Di-render dinamis oleh app.js -->
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==========================================================================
+       MAIN PRODUCT GRID
+       ========================================================================== -->
+  <main class="products-section">
+    <div class="container">
+      <div class="products-grid" id="productsGrid">
+        <!-- Kartu produk di-render oleh app.js -->
+      </div>
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       PRODUCT DETAIL MODAL
+       ========================================================================== -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-container">
+      <button type="button" class="modal-close-btn" onclick="app.closeDetailModal()" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="modal-content-scroll" id="detailModalContent">
+        <!-- Konten detail diisi dinamis oleh app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       TOAST NOTIFICATION
+       ========================================================================== -->
+  <div class="toast" id="toastNotification">
+    <i class="fas fa-check" style="font-size: 0.8rem;"></i>
+    <span id="toastMessage">Tautan berhasil disalin</span>
+  </div>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="site-footer" id="aboutSection">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">Olivienne</div>
+        <p class="footer-desc">
+          Koleksi kurasi rekomendasi belanja pilihan berkualitas tinggi. Setiap barang dipilih secara cermat dengan mengutamakan kualitas, estetika modern, dan nilai terbaik dari Tokopedia, Shopee, TikTok Shop, serta toko resmi terpercaya.
+        </p>
+        <div class="footer-links">
+          <a href="#" onclick="event.preventDefault(); app.setCategory('all'); window.scrollTo({top: 0, behavior: 'smooth'});">Shop All</a>
+          <a href="#" onclick="event.preventDefault(); app.setCategory('featured'); window.scrollTo({top: 0, behavior: 'smooth'});">Featured Selection</a>
+          <a href="#" onclick="event.preventDefault(); app.setCategory('fashion'); window.scrollTo({top: 0, behavior: 'smooth'});">Fashion</a>
+          <a href="#" onclick="event.preventDefault(); app.setCategory('elektronik'); window.scrollTo({top: 0, behavior: 'smooth'});">Electronics</a>
+          <a href="#" onclick="event.preventDefault(); app.setCategory('rumah-tangga'); window.scrollTo({top: 0, behavior: 'smooth'});">Home Living</a>
+          <a href="admin.html" style="color: var(--text-light); font-weight: 500;">Owner Login</a>
+        </div>
+        <div class="footer-copy">
+          &copy; 2026 Olivienne Curated Catalog. All rights reserved. 
+          <br><small style="color: #A1A1AA;">*Harga dan stok dapat berubah sewaktu-waktu mengikuti marketplace resmi.</small>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       MOBILE BOTTOM NAVIGATION BAR
+       ========================================================================== -->
+  <nav class="mobile-nav-bar">
+    <button type="button" class="nav-item active" onclick="app.resetFilters(); window.scrollTo({top: 0, behavior: 'smooth'});">
+      <i class="fas fa-home"></i>
+      <span>SHOP</span>
+    </button>
+    <button type="button" class="nav-item" onclick="app.setCategory('featured'); window.scrollTo({top: 0, behavior: 'smooth'});">
+      <i class="fas fa-star"></i>
+      <span>CURATED</span>
+    </button>
+    <button type="button" class="nav-item" onclick="document.getElementById('categoryNavSection').scrollIntoView({behavior: 'smooth'});">
+      <i class="fas fa-th-large"></i>
+      <span>CATEGORY</span>
+    </button>
+    <button type="button" class="nav-item" onclick="app.toggleSearchDrawer(true);">
+      <i class="fas fa-search"></i>
+      <span>SEARCH</span>
+    </button>
+  </nav>
+
+  <!-- ==========================================================================
+       SCRIPTS
+       ========================================================================== -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
