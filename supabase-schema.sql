@@ -57,3 +57,4 @@ create policy "Enable delete for all users"
 
 -- 7. Aktifkan Realtime Replication (Opsional agar katalog auto-update langsung)
 alter publication supabase_realtime add table public.products;
+

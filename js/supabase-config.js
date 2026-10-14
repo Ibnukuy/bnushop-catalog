@@ -108,3 +108,4 @@ class SupabaseService {
 
 // Inisialisasi instance global
 const supabaseService = new SupabaseService();
+
