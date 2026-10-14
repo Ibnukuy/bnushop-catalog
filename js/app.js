@@ -1,13 +1,13 @@
 /**
  * KATALOG REKOMENDASI BELANJA - OLIVIENNE EDITORIAL LUXURY EDITION
- * Logika antarmuka modern, simpel, minimalis, dan elegan.
+ * Didukung Cloud Database Supabase & Sinkronisasi Realtime.
  */
 
 const DEFAULT_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22400%22%20height%3D%22533%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23f3f1ec%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22serif%22%20font-size%3D%2218%22%20fill%3D%22%23a1a1aa%22%20letter-spacing%3D%222%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%3EOLIVIENNE%3C%2Ftext%3E%3C%2Fsvg%3E";
 
 class CatalogApp {
   constructor() {
-    this.products = this.loadProducts();
+    this.products = this.loadLocalProducts();
     this.activeCategory = 'all';
     this.searchQuery = '';
     this.sortBy = 'recommended';
@@ -17,10 +17,13 @@ class CatalogApp {
     this.initEvents();
     this.renderCategories();
     this.renderProducts();
+
+    // Muat data dari Supabase jika sudah dikonfigurasi
+    this.initSupabaseSync();
   }
 
-  // Muat produk dari LocalStorage jika ada editan dari admin, atau dari data.js
-  loadProducts() {
+  // Muat produk lokal (fallback instan)
+  loadLocalProducts() {
     try {
       const saved = localStorage.getItem('catalog_products_data');
       if (saved) {
@@ -33,6 +36,54 @@ class CatalogApp {
       console.warn('Gagal membaca data dari localStorage', e);
     }
     return typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
+  }
+
+  // Inisialisasi Supabase
+  async initSupabaseSync() {
+    if (typeof supabaseService !== 'undefined' && supabaseService.isConfigured()) {
+      await this.fetchProductsFromSupabase();
+      this.subscribeRealtime();
+    }
+  }
+
+  // Ambil produk dari Cloud Database Supabase
+  async fetchProductsFromSupabase() {
+    try {
+      const { data, error } = await supabaseService.client
+        .from('products')
+        .select('*')
+        .order('id', { ascending: false });
+
+      if (error) {
+        console.warn('Gagal mengambil data dari Supabase:', error.message);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        this.products = data.map(SupabaseService.mapFromDb);
+        // Simpan cache lokal
+        localStorage.setItem('catalog_products_data', JSON.stringify(this.products));
+        this.renderCategories();
+        this.renderProducts();
+      }
+    } catch (err) {
+      console.error('Error fetch Supabase:', err);
+    }
+  }
+
+  // Langganan pembaruan realtime dari Supabase
+  subscribeRealtime() {
+    try {
+      supabaseService.client
+        .channel('public:products')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+          this.fetchProductsFromSupabase();
+          this.showToast('Katalog otomatis diperbarui dari Cloud!');
+        })
+        .subscribe();
+    } catch (e) {
+      console.warn('Realtime subscription tidak aktif:', e);
+    }
   }
 
   // Inisialisasi Elemen DOM
@@ -60,7 +111,6 @@ class CatalogApp {
 
   // Setup Event Listeners
   initEvents() {
-    // Search Drawer Input
     if (this.searchInput) {
       this.searchInput.addEventListener('input', (e) => {
         this.searchQuery = e.target.value.trim().toLowerCase();
@@ -68,7 +118,6 @@ class CatalogApp {
       });
     }
 
-    // Sort select
     if (this.sortSelect) {
       this.sortSelect.addEventListener('change', (e) => {
         this.sortBy = e.target.value;
@@ -76,12 +125,10 @@ class CatalogApp {
       });
     }
 
-    // Tutup modal jika klik overlay
     window.addEventListener('click', (e) => {
       if (e.target === this.detailModal) this.closeDetailModal();
     });
 
-    // Keyboard ESC
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         this.closeDetailModal();
@@ -89,18 +136,16 @@ class CatalogApp {
       }
     });
 
-    // Real-time synchronization dengan Halaman Admin
+    // Real-time synchronization tab sebelah
     window.addEventListener('storage', (e) => {
       if (e.key === 'catalog_products_data') {
-        this.products = this.loadProducts();
+        this.products = this.loadLocalProducts();
         this.renderCategories();
         this.renderProducts();
-        this.showToast('Katalog diperbarui dari Admin');
       }
     });
   }
 
-  // Toggle Search Drawer
   toggleSearchDrawer(force) {
     if (!this.searchDrawer) return;
     const shouldOpen = typeof force === 'boolean' ? force : !this.searchDrawer.classList.contains('active');
@@ -115,7 +160,6 @@ class CatalogApp {
     }
   }
 
-  // Format Rupiah
   formatRupiah(number) {
     if (!number || isNaN(number)) return 'Rp 0';
     return new Intl.NumberFormat('id-ID', {
@@ -125,14 +169,12 @@ class CatalogApp {
     }).format(number);
   }
 
-  // Hitung jumlah produk per kategori
   getProductCountByCategory(catId) {
     if (catId === 'all') return this.products.length;
     if (catId === 'featured') return this.products.filter(p => p.isFeatured).length;
     return this.products.filter(p => p.category === catId).length;
   }
 
-  // Render Kategori
   renderCategories() {
     if (!this.categoryContainer) return;
 
@@ -166,7 +208,6 @@ class CatalogApp {
     }
   }
 
-  // Platform Helper
   getPlatformInfo(platformKey) {
     const key = (platformKey || 'other').toLowerCase();
     if (typeof MARKETPLACES !== 'undefined' && MARKETPLACES[key]) {
@@ -181,18 +222,15 @@ class CatalogApp {
     };
   }
 
-  // Filter & Pengurutan Produk
   getFilteredProducts() {
     let result = [...this.products];
 
-    // Filter Kategori
     if (this.activeCategory === 'featured') {
       result = result.filter(item => item.isFeatured === true);
     } else if (this.activeCategory !== 'all') {
       result = result.filter(item => item.category === this.activeCategory);
     }
 
-    // Filter Pencarian
     if (this.searchQuery) {
       result = result.filter(item => {
         const titleMatch = (item.title || '').toLowerCase().includes(this.searchQuery);
@@ -203,7 +241,6 @@ class CatalogApp {
       });
     }
 
-    // Pengurutan
     result.sort((a, b) => {
       if (this.sortBy === 'price-low') {
         return a.price - b.price;
@@ -214,7 +251,6 @@ class CatalogApp {
       if (this.sortBy === 'rating') {
         return (b.rating || 0) - (a.rating || 0);
       }
-      // 'recommended'
       if (a.isFeatured !== b.isFeatured) {
         return a.isFeatured ? -1 : 1;
       }
@@ -224,13 +260,11 @@ class CatalogApp {
     return result;
   }
 
-  // Render Grid Produk
   renderProducts() {
     if (!this.productsGrid) return;
 
     const filtered = this.getFilteredProducts();
 
-    // Update Counter & Breadcrumbs
     if (this.itemsCountDisplay) {
       this.itemsCountDisplay.textContent = `${filtered.length} items`;
     }
@@ -247,7 +281,6 @@ class CatalogApp {
       this.breadcrumbView.textContent = this.searchQuery ? `Search "${this.searchQuery}"` : 'View All';
     }
 
-    // Tampilan kosong jika tidak ada produk
     if (filtered.length === 0) {
       this.productsGrid.innerHTML = `
         <div class="empty-state" style="grid-column: 1 / -1;">
@@ -263,7 +296,6 @@ class CatalogApp {
       return;
     }
 
-    // Render kartu produk ala Olivienne
     this.productsGrid.innerHTML = filtered.map(product => {
       let discountBadge = '';
       if (product.originalPrice && product.originalPrice > product.price) {
@@ -331,7 +363,6 @@ class CatalogApp {
     }).join('');
   }
 
-  // Reset filter
   resetFilters() {
     this.activeCategory = 'all';
     this.searchQuery = '';
@@ -341,7 +372,6 @@ class CatalogApp {
     this.renderProducts();
   }
 
-  // Modal Detail
   openDetailModal(productId) {
     const product = this.products.find(p => p.id === productId);
     if (!product) return;
@@ -442,7 +472,6 @@ class CatalogApp {
     }
   }
 
-  // Copy Link
   copyLink(url) {
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(url).then(() => {
@@ -472,7 +501,6 @@ class CatalogApp {
     document.body.removeChild(textArea);
   }
 
-  // Toast
   showToast(message) {
     if (!this.toastEl || !this.toastMessage) return;
     this.toastMessage.textContent = message;

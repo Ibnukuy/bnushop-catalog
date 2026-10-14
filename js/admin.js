@@ -1,25 +1,28 @@
 /**
  * LOGIKA DASHBOARD ADMIN (admin.js)
- * Mengelola Otentikasi, CRUD Postingan Produk (Tambah, Edit, Hapus),
- * Toggle Produk Pilihan, Ekspor Data, dan Pengaturan Password.
+ * Mengelola Otentikasi, Cloud CRUD Supabase (Tambah, Edit, Hapus, Toggle Pilihan),
+ * Pengaturan Koneksi Supabase, Migrasi Data, dan Ekspor.
  */
 
 const DEFAULT_ADMIN_PASSWORD = 'admin123';
-const DEFAULT_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22400%22%20height%3D%22400%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23f1f5f9%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2220%22%20fill%3D%22%2394a3b8%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%3EFoto%20Produk%3C%2Ftext%3E%3C%2Fsvg%3E";
+const DEFAULT_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22400%22%20height%3D%22533%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23f3f1ec%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22serif%22%20font-size%3D%2218%22%20fill%3D%22%23a1a1aa%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%3EFoto%20Produk%3C%2Ftext%3E%3C%2Fsvg%3E";
 
 class AdminManager {
   constructor() {
-    this.products = this.loadProducts();
+    this.products = this.loadLocalProducts();
     this.editingProductId = null;
     this.searchQuery = '';
     
     this.initElements();
     this.checkAuthStatus();
     this.initEvents();
+    this.updateDbStatusBadge();
+
+    // Jika Supabase aktif, ambil data terbaru dari cloud
+    this.syncFromSupabase();
   }
 
-  // Load Products
-  loadProducts() {
+  loadLocalProducts() {
     try {
       const saved = localStorage.getItem('catalog_products_data');
       if (saved) {
@@ -32,7 +35,7 @@ class AdminManager {
     return typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
   }
 
-  saveProducts() {
+  saveLocalProducts() {
     try {
       localStorage.setItem('catalog_products_data', JSON.stringify(this.products));
     } catch (e) {
@@ -48,7 +51,51 @@ class AdminManager {
     localStorage.setItem('catalog_admin_password', newPass);
   }
 
-  // Elemen DOM
+  // Update status badge di navbar admin
+  updateDbStatusBadge() {
+    const badge = document.getElementById('dbStatusBadge');
+    if (!badge) return;
+
+    if (typeof supabaseService !== 'undefined' && supabaseService.isConfigured()) {
+      badge.innerHTML = '<span style="color:#10B981;">&bull;</span> Supabase Cloud Terhubung';
+      badge.style.borderColor = '#10B981';
+      badge.style.color = '#065F46';
+      badge.style.background = '#ECFDF5';
+    } else {
+      badge.innerHTML = '<span style="color:#F59E0B;">&bull;</span> Penyimpanan Lokal (Offline)';
+      badge.style.borderColor = '#FCD34D';
+      badge.style.color = '#92400E';
+      badge.style.background = '#FEF3C7';
+    }
+  }
+
+  // Tarik data dari Cloud Database Supabase
+  async syncFromSupabase() {
+    if (typeof supabaseService !== 'undefined' && supabaseService.isConfigured()) {
+      try {
+        const { data, error } = await supabaseService.client
+          .from('products')
+          .select('*')
+          .order('id', { ascending: false });
+
+        if (error) {
+          console.warn('Gagal sync Supabase:', error.message);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          this.products = data.map(SupabaseService.mapFromDb);
+          this.saveLocalProducts();
+          this.renderStats();
+          this.renderTable();
+          this.showToast('Data produk tersinkronisasi dari Supabase Cloud!');
+        }
+      } catch (err) {
+        console.error('Sync Supabase error:', err);
+      }
+    }
+  }
+
   initElements() {
     this.loginScreen = document.getElementById('loginScreen');
     this.adminApp = document.getElementById('adminApp');
@@ -56,7 +103,7 @@ class AdminManager {
     this.passwordInput = document.getElementById('adminPasswordInput');
     this.loginError = document.getElementById('loginError');
 
-    // Dashboard
+    // Dashboard Stats
     this.statTotal = document.getElementById('statTotalProducts');
     this.statFeatured = document.getElementById('statFeaturedProducts');
     this.statTokopedia = document.getElementById('statTokopediaProducts');
@@ -77,12 +124,15 @@ class AdminManager {
     this.passwordModal = document.getElementById('passwordModal');
     this.passwordForm = document.getElementById('changePasswordForm');
 
+    // Modal Supabase Settings
+    this.dbModal = document.getElementById('supabaseModal');
+    this.dbForm = document.getElementById('supabaseForm');
+
     // Toast
     this.toastEl = document.getElementById('adminToast');
     this.toastMessage = document.getElementById('adminToastMessage');
   }
 
-  // Cek Status Login
   checkAuthStatus() {
     const isLoggedIn = sessionStorage.getItem('catalog_admin_auth') === 'true';
     if (isLoggedIn) {
@@ -102,11 +152,11 @@ class AdminManager {
     if (this.adminApp) this.adminApp.style.display = 'flex';
     this.renderStats();
     this.renderTable();
+    this.updateDbStatusBadge();
   }
 
-  // Event Listeners
   initEvents() {
-    // Submit Login
+    // Login Submit
     if (this.loginForm) {
       this.loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -118,7 +168,7 @@ class AdminManager {
           if (this.loginError) this.loginError.style.display = 'none';
           this.passwordInput.value = '';
           this.showAdminDashboard();
-          this.showToast('Berhasil masuk ke Admin Panel!');
+          this.showToast('Selamat datang di Olivienne Studio Admin!');
         } else {
           if (this.loginError) {
             this.loginError.textContent = 'Password salah! Default password adalah: admin123';
@@ -138,7 +188,7 @@ class AdminManager {
       });
     }
 
-    // Form Tambah / Edit Submit
+    // Submit Form Tambah/Edit Produk
     if (this.productForm) {
       this.productForm.addEventListener('submit', (e) => this.handleProductFormSubmit(e));
     }
@@ -151,7 +201,7 @@ class AdminManager {
       });
     }
 
-    // Search input
+    // Search table
     if (this.adminSearchInput) {
       this.adminSearchInput.addEventListener('input', (e) => {
         this.searchQuery = e.target.value.trim().toLowerCase();
@@ -168,7 +218,7 @@ class AdminManager {
         const confirmPass = document.getElementById('confirmPassword').value.trim();
 
         if (oldPass !== this.getAdminPassword()) {
-          alert('Password lama Anda tidak cocok!');
+          alert('Password lama Anda salah!');
           return;
         }
 
@@ -187,9 +237,13 @@ class AdminManager {
         this.showToast('Password admin berhasil diubah!');
       });
     }
+
+    // Supabase Settings Submit
+    if (this.dbForm) {
+      this.dbForm.addEventListener('submit', (e) => this.handleDbConfigSubmit(e));
+    }
   }
 
-  // Logout
   logout() {
     if (confirm('Apakah Anda ingin keluar dari Admin Panel?')) {
       sessionStorage.removeItem('catalog_admin_auth');
@@ -198,7 +252,6 @@ class AdminManager {
     }
   }
 
-  // Render Stats
   renderStats() {
     if (this.statTotal) this.statTotal.textContent = this.products.length;
     if (this.statFeatured) this.statFeatured.textContent = this.products.filter(p => p.isFeatured).length;
@@ -210,7 +263,6 @@ class AdminManager {
     if (this.statTokopedia) this.statTokopedia.textContent = tokpedCount;
   }
 
-  // Format Rupiah
   formatRupiah(num) {
     if (!num || isNaN(num)) return 'Rp 0';
     return new Intl.NumberFormat('id-ID', {
@@ -220,7 +272,6 @@ class AdminManager {
     }).format(num);
   }
 
-  // Render Table
   renderTable() {
     if (!this.productsTableBody) return;
 
@@ -237,7 +288,7 @@ class AdminManager {
     if (filtered.length === 0) {
       this.productsTableBody.innerHTML = `
         <tr>
-          <td colspan="7" style="text-align: center; padding: 3rem; color: #64748B;">
+          <td colspan="6" style="text-align: center; padding: 3rem; color: #64748B;">
             <i class="fas fa-box-open" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: #CBD5E1;"></i>
             Belum ada produk yang cocok dengan pencarian.
           </td>
@@ -281,7 +332,7 @@ class AdminManager {
                   ${this.escapeHtml(p.title)}
                 </div>
                 <div class="product-info-subtitle">
-                  ID: ${p.id} ${p.badgeText ? '• <span style="color:#EE4D2D; font-weight:600;">' + this.escapeHtml(p.badgeText) + '</span>' : ''}
+                  ID: ${p.id} ${p.badgeText ? '• <span style="color:#18181B; font-weight:600;">' + this.escapeHtml(p.badgeText) + '</span>' : ''}
                 </div>
               </div>
             </div>
@@ -331,33 +382,58 @@ class AdminManager {
     }).join('');
   }
 
-  // Toggle Bintang Produk Pilihan
-  toggleFeatured(productId) {
+  // Toggle Bintang Produk Pilihan (Lokal + Supabase)
+  async toggleFeatured(productId) {
     const item = this.products.find(p => p.id === productId);
     if (!item) return;
 
     item.isFeatured = !item.isFeatured;
-    this.saveProducts();
+    this.saveLocalProducts();
     this.renderStats();
     this.renderTable();
-    this.showToast(item.isFeatured ? 'Ditandai sebagai ⭐ Produk Pilihan!' : 'Dihapus dari Produk Pilihan.');
+
+    // Simpan ke Supabase jika aktif
+    if (typeof supabaseService !== 'undefined' && supabaseService.isConfigured()) {
+      try {
+        await supabaseService.client
+          .from('products')
+          .update({ is_featured: item.isFeatured })
+          .eq('id', productId);
+      } catch (e) {
+        console.warn('Gagal update bintang ke Supabase:', e);
+      }
+    }
+
+    this.showToast(item.isFeatured ? 'Ditandai sebagai ⭐ Editor Pick!' : 'Dihapus dari Editor Pick.');
   }
 
-  // Hapus Produk
-  deleteProduct(productId) {
+  // Hapus Produk (Lokal + Supabase)
+  async deleteProduct(productId) {
     const item = this.products.find(p => p.id === productId);
     if (!item) return;
 
     if (confirm(`Apakah Anda yakin ingin menghapus postingan: "${item.title}"?`)) {
       this.products = this.products.filter(p => p.id !== productId);
-      this.saveProducts();
+      this.saveLocalProducts();
       this.renderStats();
       this.renderTable();
+
+      // Hapus dari Supabase jika aktif
+      if (typeof supabaseService !== 'undefined' && supabaseService.isConfigured()) {
+        try {
+          await supabaseService.client
+            .from('products')
+            .delete()
+            .eq('id', productId);
+        } catch (e) {
+          console.warn('Gagal delete produk dari Supabase:', e);
+        }
+      }
+
       this.showToast('Postingan berhasil dihapus!');
     }
   }
 
-  // Modal Tambah Postingan Baru
   openAddModal() {
     this.editingProductId = null;
     this.modalTitle.textContent = 'Tambah Postingan Produk Baru';
@@ -367,7 +443,6 @@ class AdminManager {
     this.productModal.classList.add('active');
   }
 
-  // Modal Edit Postingan
   openEditModal(productId) {
     const item = this.products.find(p => p.id === productId);
     if (!item) return;
@@ -387,7 +462,6 @@ class AdminManager {
     document.getElementById('formBadgeText').value = item.badgeText || '';
     document.getElementById('formFeatured').checked = !!item.isFeatured;
 
-    // Optional Secondary link
     document.getElementById('formSecondaryPlatform').value = item.secondaryPlatform || '';
     document.getElementById('formSecondaryUrl').value = item.secondaryUrl || '';
 
@@ -406,8 +480,8 @@ class AdminManager {
     }
   }
 
-  // Handle Form Submit (Create or Update)
-  handleProductFormSubmit(e) {
+  // Handle Form Submit (Lokal + Supabase Cloud)
+  async handleProductFormSubmit(e) {
     e.preventDefault();
 
     const title = document.getElementById('formTitle').value.trim();
@@ -426,63 +500,153 @@ class AdminManager {
     const secondaryUrl = document.getElementById('formSecondaryUrl').value.trim() || null;
 
     if (!title || isNaN(price) || !productUrl) {
-      alert('Mohon isi judul, harga, dan link belanja produk.');
+      alert('Mohon lengkapi judul produk, harga jual, dan link belanja utama.');
       return;
     }
 
+    const itemData = {
+      title,
+      category,
+      platform,
+      productUrl,
+      price,
+      originalPrice,
+      rating: 5.0,
+      soldCount: 'Curated',
+      image,
+      description,
+      recommendationReason,
+      badgeText: badgeText || (isFeatured ? 'Curator Choice' : ''),
+      isFeatured,
+      secondaryPlatform,
+      secondaryUrl
+    };
+
     if (this.editingProductId) {
-      // Update existing
+      // 1. Update di Memori Lokal
       const index = this.products.findIndex(p => p.id === this.editingProductId);
       if (index !== -1) {
-        this.products[index] = {
-          ...this.products[index],
-          title,
-          category,
-          platform,
-          productUrl,
-          price,
-          originalPrice,
-          image,
-          description,
-          recommendationReason,
-          badgeText: badgeText || (isFeatured ? '⭐ Pilihan Kami' : ''),
-          isFeatured,
-          secondaryPlatform,
-          secondaryUrl
-        };
-        this.showToast('Postingan produk berhasil diperbarui!');
+        this.products[index] = { ...this.products[index], ...itemData };
       }
+
+      // 2. Update di Supabase jika aktif
+      if (typeof supabaseService !== 'undefined' && supabaseService.isConfigured()) {
+        try {
+          const payload = SupabaseService.mapToDb(itemData);
+          await supabaseService.client
+            .from('products')
+            .update(payload)
+            .eq('id', this.editingProductId);
+        } catch (err) {
+          console.error('Gagal update ke Supabase:', err);
+        }
+      }
+
+      this.showToast('Postingan produk berhasil diperbarui di Cloud!');
     } else {
-      // Create new
-      const newProduct = {
-        id: Date.now(),
-        title,
-        category,
-        platform,
-        productUrl,
-        price,
-        originalPrice,
-        rating: 5.0,
-        soldCount: 'Baru',
-        image,
-        description,
-        recommendationReason,
-        badgeText: badgeText || (isFeatured ? '⭐ Baru & Pilihan' : 'Baru'),
-        isFeatured,
-        secondaryPlatform,
-        secondaryUrl
-      };
-      this.products.unshift(newProduct);
-      this.showToast('Postingan produk baru berhasil ditambahkan!');
+      // 1. Tambah Baru di Supabase jika aktif
+      let newId = Date.now();
+      if (typeof supabaseService !== 'undefined' && supabaseService.isConfigured()) {
+        try {
+          const payload = SupabaseService.mapToDb(itemData);
+          const { data, error } = await supabaseService.client
+            .from('products')
+            .insert([payload])
+            .select();
+
+          if (!error && data && data.length > 0) {
+            newId = data[0].id;
+          }
+        } catch (err) {
+          console.error('Gagal insert ke Supabase:', err);
+        }
+      }
+
+      itemData.id = newId;
+      this.products.unshift(itemData);
+      this.showToast('Postingan baru berhasil ditambahkan ke Cloud!');
     }
 
-    this.saveProducts();
+    this.saveLocalProducts();
     this.closeProductModal();
     this.renderStats();
     this.renderTable();
   }
 
-  // Modal Ganti Password
+  // Pengaturan Supabase Modal
+  openDbModal() {
+    if (this.dbModal) {
+      const config = supabaseService.getConfig();
+      document.getElementById('supabaseUrlInput').value = config.url || '';
+      document.getElementById('supabaseKeyInput').value = config.anonKey || '';
+      this.dbModal.classList.add('active');
+    }
+  }
+
+  closeDbModal() {
+    if (this.dbModal) {
+      this.dbModal.classList.remove('active');
+    }
+  }
+
+  // Simpan Pengaturan Supabase
+  async handleDbConfigSubmit(e) {
+    e.preventDefault();
+    const url = document.getElementById('supabaseUrlInput').value.trim();
+    const anonKey = document.getElementById('supabaseKeyInput').value.trim();
+
+    if (!url || !anonKey) {
+      alert('Mohon isi Supabase URL dan Public Anon Key.');
+      return;
+    }
+
+    supabaseService.saveConfig(url, anonKey);
+    this.updateDbStatusBadge();
+
+    // Tes koneksi
+    try {
+      const { data, error } = await supabaseService.client.from('products').select('count', { count: 'exact', head: true });
+      if (error) {
+        alert('Gagal terhubung ke tabel products di Supabase: ' + error.message + '\n\nPastikan Anda sudah menjalankan script SQL dari file "supabase-schema.sql" di dashboard Supabase!');
+        return;
+      }
+      this.closeDbModal();
+      this.showToast('Koneksi Supabase berhasil terhubung!');
+      await this.syncFromSupabase();
+    } catch (err) {
+      alert('Error koneksi Supabase: ' + err.message);
+    }
+  }
+
+  // Migrasikan Data Sampel Awal ke Supabase dengan 1 Klik!
+  async migrateDataToSupabase() {
+    if (!supabaseService.isConfigured()) {
+      alert('Mohon hubungkan Supabase terlebih dahulu melalui menu "Koneksi Database"!');
+      this.openDbModal();
+      return;
+    }
+
+    if (confirm(`Apakah Anda ingin mengunggah ${this.products.length} produk katalog saat ini ke Database Supabase Cloud?`)) {
+      try {
+        const payloads = this.products.map(p => SupabaseService.mapToDb(p));
+        const { data, error } = await supabaseService.client
+          .from('products')
+          .insert(payloads)
+          .select();
+
+        if (error) {
+          alert('Gagal migrasi: ' + error.message);
+          return;
+        }
+
+        this.showToast('Semua produk berhasil diunggah ke Supabase Cloud!');
+        await this.syncFromSupabase();
+      } catch (err) {
+        alert('Error migrasi: ' + err.message);
+      }
+    }
+  }
+
   openPasswordModal() {
     if (this.passwordModal) {
       this.passwordForm.reset();
@@ -497,10 +661,9 @@ class AdminManager {
     }
   }
 
-  // Ekspor Data ke File / Clipboard
   exportData() {
     const codeContent = `/**
- * DATA PRODUK REKOMENDASI BELANJA MULTI-MARKETPLACE
+ * DATA PRODUK REKOMENDASI BELANJA - OLIVIENNE CURATED EDITION
  * Otomatis diekspor dari Admin Panel pada ${new Date().toLocaleString('id-ID')}
  */
 
@@ -511,12 +674,10 @@ const CATEGORIES = ${JSON.stringify(CATEGORIES, null, 2)};
 const INITIAL_PRODUCTS = ${JSON.stringify(this.products, null, 2)};
 `;
 
-    // Coba salin ke clipboard
     navigator.clipboard.writeText(codeContent).then(() => {
       this.showToast('Kode data berhasil disalin ke clipboard!');
-      alert('Kode data produk telah disalin ke Clipboard! Anda bisa menempelkannya ke file "js/data.js" agar permanen di server/hosting.');
+      alert('Kode data produk telah disalin ke Clipboard! Anda bisa menempelkannya ke file "js/data.js".');
     }).catch(() => {
-      // Download file sebagai alternatif
       const blob = new Blob([codeContent], { type: 'text/javascript' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -526,9 +687,8 @@ const INITIAL_PRODUCTS = ${JSON.stringify(this.products, null, 2)};
     });
   }
 
-  // Reset ke data awal bawaan
   resetToDefault() {
-    if (confirm('PERINGATAN: Apakah Anda yakin ingin menghapus semua perubahan dan mengembalikan ke data awal bawaan?')) {
+    if (confirm('PERINGATAN: Apakah Anda yakin ingin mengembalikan ke data sampel awal?')) {
       localStorage.removeItem('catalog_products_data');
       this.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
       this.renderStats();
@@ -537,7 +697,6 @@ const INITIAL_PRODUCTS = ${JSON.stringify(this.products, null, 2)};
     }
   }
 
-  // Toast
   showToast(message) {
     if (!this.toastEl || !this.toastMessage) return;
     this.toastMessage.textContent = message;
@@ -564,4 +723,3 @@ let admin;
 document.addEventListener('DOMContentLoaded', () => {
   admin = new AdminManager();
 });
-
