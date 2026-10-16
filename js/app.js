@@ -1,13 +1,15 @@
 /**
- * KATALOG REKOMENDASI BELANJA - OLIVIENNE EDITORIAL LUXURY EDITION
- * Didukung Cloud Database Supabase & Sinkronisasi Realtime.
+ * KATALOG REKOMENDASI BELANJA - GLOWÉRIVE BOTANICAL LUXURY THEME
+ * Deep Forest Teal, Fresh Mint, Clean White, Modern & Simpel.
+ * Mendukung Cloud Database Supabase & Sinkronisasi Realtime.
  */
 
-const DEFAULT_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22400%22%20height%3D%22533%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23f3f1ec%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22serif%22%20font-size%3D%2218%22%20fill%3D%22%23a1a1aa%22%20letter-spacing%3D%222%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%3EOLIVIENNE%3C%2Ftext%3E%3C%2Fsvg%3E";
+const DEFAULT_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22400%22%20height%3D%22400%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23e6f4f1%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2218%22%20fill%3D%22%230f3e3c%22%20font-weight%3D%22bold%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%3EBNUSHOP%3C%2Ftext%3E%3C%2Fsvg%3E";
 
 class CatalogApp {
   constructor() {
     this.products = this.loadLocalProducts();
+    this.wishlist = this.loadWishlist();
     this.activeCategory = 'all';
     this.searchQuery = '';
     this.sortBy = 'recommended';
@@ -18,11 +20,39 @@ class CatalogApp {
     this.renderCategories();
     this.renderProducts();
 
-    // Muat data dari Supabase jika sudah dikonfigurasi
+    // Sinkronisasi dengan Supabase jika aktif
     this.initSupabaseSync();
   }
 
-  // Muat produk lokal (fallback instan)
+  loadWishlist() {
+    try {
+      const saved = localStorage.getItem('user_catalog_wishlist');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  saveWishlist() {
+    try {
+      localStorage.setItem('user_catalog_wishlist', JSON.stringify(this.wishlist));
+    } catch (e) {}
+  }
+
+  toggleWishlist(productId) {
+    const id = Number(productId);
+    const index = this.wishlist.indexOf(id);
+    if (index > -1) {
+      this.wishlist.splice(index, 1);
+      this.showToast('Dihapus dari daftar favorit');
+    } else {
+      this.wishlist.push(id);
+      this.showToast('Ditambahkan ke daftar favorit!');
+    }
+    this.saveWishlist();
+    this.renderProducts();
+  }
+
   loadLocalProducts() {
     try {
       const saved = localStorage.getItem('catalog_products_data');
@@ -38,7 +68,6 @@ class CatalogApp {
     return typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
   }
 
-  // Inisialisasi Supabase
   async initSupabaseSync() {
     if (typeof supabaseService !== 'undefined' && supabaseService.isConfigured()) {
       await this.fetchProductsFromSupabase();
@@ -46,7 +75,6 @@ class CatalogApp {
     }
   }
 
-  // Ambil produk dari Cloud Database Supabase
   async fetchProductsFromSupabase() {
     try {
       const { data, error } = await supabaseService.client
@@ -55,13 +83,12 @@ class CatalogApp {
         .order('id', { ascending: false });
 
       if (error) {
-        console.warn('Gagal mengambil data dari Supabase:', error.message);
+        console.warn('Gagal fetch Supabase:', error.message);
         return;
       }
 
       if (data && data.length > 0) {
         this.products = data.map(SupabaseService.mapFromDb);
-        // Simpan cache lokal
         localStorage.setItem('catalog_products_data', JSON.stringify(this.products));
         this.renderCategories();
         this.renderProducts();
@@ -71,14 +98,13 @@ class CatalogApp {
     }
   }
 
-  // Langganan pembaruan realtime dari Supabase
   subscribeRealtime() {
     try {
       supabaseService.client
         .channel('public:products')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
           this.fetchProductsFromSupabase();
-          this.showToast('Katalog otomatis diperbarui dari Cloud!');
+          this.showToast('Katalog diperbarui dari Cloud!');
         })
         .subscribe();
     } catch (e) {
@@ -86,7 +112,6 @@ class CatalogApp {
     }
   }
 
-  // Inisialisasi Elemen DOM
   initElements() {
     this.searchInput = document.getElementById('searchInput');
     this.searchDrawer = document.getElementById('searchDrawer');
@@ -94,10 +119,7 @@ class CatalogApp {
     this.sortSelect = document.getElementById('sortSelect');
     this.productsGrid = document.getElementById('productsGrid');
     
-    // Breadcrumbs & Counter
-    this.breadcrumbCategory = document.getElementById('breadcrumbCategory');
-    this.breadcrumbView = document.getElementById('breadcrumbView');
-    this.itemsCountDisplay = document.getElementById('itemsCountDisplay');
+    // Header Bag Count
     this.headerBagCount = document.getElementById('headerBagCount');
     
     // Modal Detail
@@ -109,7 +131,6 @@ class CatalogApp {
     this.toastMessage = document.getElementById('toastMessage');
   }
 
-  // Setup Event Listeners
   initEvents() {
     if (this.searchInput) {
       this.searchInput.addEventListener('input', (e) => {
@@ -136,7 +157,6 @@ class CatalogApp {
       }
     });
 
-    // Real-time synchronization tab sebelah
     window.addEventListener('storage', (e) => {
       if (e.key === 'catalog_products_data') {
         this.products = this.loadLocalProducts();
@@ -169,30 +189,33 @@ class CatalogApp {
     }).format(number);
   }
 
-  getProductCountByCategory(catId) {
-    if (catId === 'all') return this.products.length;
-    if (catId === 'featured') return this.products.filter(p => p.isFeatured).length;
-    return this.products.filter(p => p.category === catId).length;
-  }
-
+  // Render Shop By Category (Circular Cards seperti di screenshot Glowérive)
   renderCategories() {
     if (!this.categoryContainer) return;
 
     this.categoryContainer.innerHTML = CATEGORIES.map(cat => {
-      const count = this.getProductCountByCategory(cat.id);
       const isActive = this.activeCategory === cat.id ? 'active' : '';
       return `
-        <button type="button" class="cat-btn ${isActive}" data-category="${cat.id}">
-          ${cat.name} (${count})
-        </button>
+        <div class="cat-circle-card ${isActive}" data-category="${cat.id}">
+          <div class="cat-circle-frame">
+            <img src="${cat.image || DEFAULT_PLACEHOLDER}" alt="${cat.name}" class="cat-circle-img" />
+          </div>
+          <div class="cat-circle-name">${cat.name}</div>
+          <div class="cat-circle-explore">Explore</div>
+        </div>
       `;
     }).join('');
 
-    const btns = this.categoryContainer.querySelectorAll('.cat-btn');
-    btns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const catId = btn.getAttribute('data-category');
+    const cards = this.categoryContainer.querySelectorAll('.cat-circle-card');
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const catId = card.getAttribute('data-category');
         this.setCategory(catId);
+        // Scroll ke grid produk
+        const target = document.getElementById('featuredSection');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       });
     });
   }
@@ -202,9 +225,9 @@ class CatalogApp {
     this.renderCategories();
     this.renderProducts();
 
-    const activeBtn = this.categoryContainer.querySelector(`.cat-btn[data-category="${catId}"]`);
-    if (activeBtn) {
-      activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    const activeCard = this.categoryContainer.querySelector(`.cat-circle-card[data-category="${catId}"]`);
+    if (activeCard) {
+      activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
   }
 
@@ -215,7 +238,7 @@ class CatalogApp {
     }
     return {
       name: 'Toko Online',
-      color: '#18181B',
+      color: '#0F3E3C',
       icon: 'fas fa-external-link-alt',
       label: 'Beli Sekarang',
       badgeClass: 'badge-other'
@@ -260,35 +283,24 @@ class CatalogApp {
     return result;
   }
 
+  // Render Grid Produk (Exact Match Card Style Glowérive)
   renderProducts() {
     if (!this.productsGrid) return;
 
     const filtered = this.getFilteredProducts();
 
-    if (this.itemsCountDisplay) {
-      this.itemsCountDisplay.textContent = `${filtered.length} items`;
-    }
     if (this.headerBagCount) {
       this.headerBagCount.textContent = this.products.length;
     }
 
-    if (this.breadcrumbCategory) {
-      const activeCatObj = CATEGORIES.find(c => c.id === this.activeCategory);
-      this.breadcrumbCategory.textContent = activeCatObj ? activeCatObj.name : 'Curated Items';
-    }
-
-    if (this.breadcrumbView) {
-      this.breadcrumbView.textContent = this.searchQuery ? `Search "${this.searchQuery}"` : 'View All';
-    }
-
     if (filtered.length === 0) {
       this.productsGrid.innerHTML = `
-        <div class="empty-state" style="grid-column: 1 / -1;">
-          <h3 class="empty-state-title">No products found</h3>
-          <p class="empty-state-desc">
-            Tidak ada koleksi yang cocok dengan filter atau pencarian saat ini.
+        <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1.5rem; background: #FFFFFF; border-radius: 16px; border: 1px dashed #DDEEE9;">
+          <h3 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--teal-primary); margin-bottom: 0.5rem;">Tidak Ada Produk</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+            Tidak ada produk yang cocok dengan pencarian atau filter yang dipilih.
           </p>
-          <button class="btn-reset-filter" onclick="app.resetFilters()">
+          <button class="btn-hero-primary" onclick="app.resetFilters()">
             Reset Filter
           </button>
         </div>
@@ -297,23 +309,27 @@ class CatalogApp {
     }
 
     this.productsGrid.innerHTML = filtered.map(product => {
-      let discountBadge = '';
+      // Tentukan Badge Status (seperti BEST SELLER, NEW, LIMITED, SALE pada screenshot)
+      let badgeText = product.badgeText || (product.isFeatured ? 'BEST SELLER' : '');
+      let badgeClass = 'badge-status';
       if (product.originalPrice && product.originalPrice > product.price) {
         const discountPct = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
-        discountBadge = `<span class="badge-tag">-${discountPct}%</span>`;
+        badgeText = badgeText || `SALE -${discountPct}%`;
+        badgeClass = 'badge-status badge-sale';
       }
 
-      const featuredBadge = product.isFeatured 
-        ? `<span class="badge-featured">Editor's Pick</span>` 
-        : '';
+      const badgeHtml = badgeText ? `<span class="${badgeClass}">${this.escapeHtml(badgeText)}</span>` : '';
 
       const originalPriceHtml = product.originalPrice && product.originalPrice > product.price 
-        ? `<span class="price-original">${this.formatRupiah(product.originalPrice)}</span>` 
+        ? `<span class="price-discounted">${this.formatRupiah(product.originalPrice)}</span>` 
         : '';
+
+      const isWishlisted = this.wishlist.includes(Number(product.id));
+      const heartIconClass = isWishlisted ? 'fas fa-heart' : 'far fa-heart';
+      const heartActiveClass = isWishlisted ? 'active' : '';
 
       const platInfo = this.getPlatformInfo(product.platform);
       const buyLink = product.productUrl || product.shopeeUrl || '#';
-      const dotClass = `dot-${product.platform || 'other'}`;
 
       return `
         <article class="product-card" data-id="${product.id}">
@@ -325,37 +341,56 @@ class CatalogApp {
               loading="lazy" 
               onerror="this.src='${DEFAULT_PLACEHOLDER}'"
             />
-            <div class="card-badges">
-              ${featuredBadge}
-              ${discountBadge}
-            </div>
+            ${badgeHtml}
+            <button 
+              type="button" 
+              class="btn-card-wishlist ${heartActiveClass}" 
+              onclick="event.stopPropagation(); app.toggleWishlist(${product.id})"
+              title="Favorit"
+            >
+              <i class="${heartIconClass}"></i>
+            </button>
           </div>
 
           <div class="card-body">
-            <div class="platform-micro-tag" onclick="app.openDetailModal(${product.id})">
-              <span class="platform-dot ${dotClass}"></span>
-              <span>${platInfo.name}</span>
-            </div>
-
             <h3 class="card-title" onclick="app.openDetailModal(${product.id})" title="${this.escapeHtml(product.title)}">
               ${this.escapeHtml(product.title)}
             </h3>
 
-            <div class="card-price-box" onclick="app.openDetailModal(${product.id})">
-              ${originalPriceHtml}
-              <span class="price-current">${this.formatRupiah(product.price)}</span>
+            <div class="card-rating-row">
+              <div class="stars-list">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <span class="reviews-count">(${product.soldCount || '245'})</span>
             </div>
 
-            <div class="card-actions">
+            <div class="card-price-row">
+              <span class="price-main">${this.formatRupiah(product.price)}</span>
+              ${originalPriceHtml}
+            </div>
+
+            <div class="card-action-row">
               <a 
                 href="${this.escapeHtml(buyLink)}" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                class="btn-luxury-buy"
+                class="btn-add-cart"
                 title="Beli produk ini di ${platInfo.name}"
               >
                 ${platInfo.label} &rarr;
               </a>
+              <button 
+                type="button" 
+                class="btn-heart-action ${heartActiveClass}" 
+                onclick="app.toggleWishlist(${product.id})"
+                title="Simpan Favorit"
+              >
+                <i class="${heartIconClass}"></i>
+              </button>
             </div>
           </div>
         </article>
@@ -389,7 +424,7 @@ class CatalogApp {
 
     const recommendationHtml = product.recommendationReason ? `
       <div class="modal-recommendation-box">
-        <strong>Curator's Note</strong>
+        <strong>Review & Alasan Rekomendasi</strong>
         <p>${this.escapeHtml(product.recommendationReason)}</p>
       </div>
     ` : '';
@@ -404,7 +439,7 @@ class CatalogApp {
           rel="noopener noreferrer" 
           class="modal-btn-secondary"
         >
-          Check on ${secPlatInfo.name}
+          Beli di ${secPlatInfo.name}
         </a>
       `;
     }
@@ -427,14 +462,25 @@ class CatalogApp {
 
           <h2 class="modal-title">${this.escapeHtml(product.title)}</h2>
 
+          <div class="card-rating-row" style="margin-bottom: 0.85rem;">
+            <div class="stars-list" style="font-size: 0.85rem;">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+            <span class="reviews-count" style="font-size: 0.82rem;">(Teruji ${product.soldCount || 'Rekomendasi'})</span>
+          </div>
+
           <div class="modal-price-box">
             <span class="modal-price-current">${this.formatRupiah(product.price)}</span>
             ${discountHtml}
           </div>
 
-          <div class="modal-section-title">Product Details</div>
+          <div class="modal-section-title">Deskripsi Produk</div>
           <div class="modal-desc-box">
-            ${this.escapeHtml(product.description || 'Kurasi barang pilihan dengan kualitas dan estetika teruji.')}
+            ${this.escapeHtml(product.description || 'Kurasi produk rekomendasi dengan kualitas dan keaslian terjamin.')}
           </div>
 
           ${recommendationHtml}
@@ -454,7 +500,7 @@ class CatalogApp {
               class="modal-btn-copy" 
               onclick="app.copyLink('${this.escapeHtml(mainBuyLink)}')"
             >
-              Copy Link
+              Salin Link
             </button>
           </div>
         </div>
@@ -475,7 +521,7 @@ class CatalogApp {
   copyLink(url) {
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(url).then(() => {
-        this.showToast('Link berhasil disalin');
+        this.showToast('Link berhasil disalin!');
       }).catch(() => {
         this.fallbackCopy(url);
       });
@@ -494,7 +540,7 @@ class CatalogApp {
     textArea.select();
     try {
       document.execCommand('copy');
-      this.showToast('Link berhasil disalin');
+      this.showToast('Link berhasil disalin!');
     } catch (err) {
       prompt("Salin link:", text);
     }

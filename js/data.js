@@ -50,13 +50,48 @@ const MARKETPLACES = {
 };
 
 const CATEGORIES = [
-  { id: 'all', name: 'All Collection', icon: 'fas fa-border-all' },
-  { id: 'featured', name: 'Curated Picks', icon: 'fas fa-star' },
-  { id: 'fashion', name: 'Ready-to-Wear', icon: 'fas fa-tshirt' },
-  { id: 'elektronik', name: 'Electronics & Audio', icon: 'fas fa-laptop' },
-  { id: 'aksesori', name: 'Accessories & Leather', icon: 'fas fa-gem' },
-  { id: 'rumah-tangga', name: 'Home Living', icon: 'fas fa-couch' },
-  { id: 'kecantikan', name: 'Beauty & Skincare', icon: 'fas fa-heart' }
+  { 
+    id: 'all', 
+    name: 'All Collection', 
+    icon: 'fas fa-border-all',
+    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=200&q=80'
+  },
+  { 
+    id: 'featured', 
+    name: 'Curated Picks', 
+    icon: 'fas fa-star',
+    image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=200&q=80'
+  },
+  { 
+    id: 'fashion', 
+    name: 'Ready-to-Wear', 
+    icon: 'fas fa-tshirt',
+    image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=200&q=80'
+  },
+  { 
+    id: 'elektronik', 
+    name: 'Electronics', 
+    icon: 'fas fa-laptop',
+    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=200&q=80'
+  },
+  { 
+    id: 'aksesori', 
+    name: 'Accessories', 
+    icon: 'fas fa-gem',
+    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&q=80'
+  },
+  { 
+    id: 'rumah-tangga', 
+    name: 'Home Living', 
+    icon: 'fas fa-couch',
+    image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=200&q=80'
+  },
+  { 
+    id: 'kecantikan', 
+    name: 'Beauty Care', 
+    icon: 'fas fa-heart',
+    image: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=200&q=80'
+  }
 ];
 
 const INITIAL_PRODUCTS = [

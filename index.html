@@ -3,81 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BNUSHOP | Katalog Kurasi Belanja Pilihan</title>
+  <title>BNUSHOP | Curated Shopping & Lifestyle Catalog</title>
   
   <!-- SEO Meta Tags -->
-  <meta name="description" content="Koleksi rekomendasi barang belanja pilihan teruji dengan estetika modern, simpel, dan elegan dari Tokopedia, Shopee, TikTok Shop, dan toko terpercaya.">
-  <meta name="theme-color" content="#FAF9F5">
+  <meta name="description" content="Temukan kurasi rekomendasi barang belanja terbaik dan teruji dari Tokopedia, Shopee, dan TikTok Shop dengan desain modern, simpel, dan elegan.">
+  <meta name="theme-color" content="#0F3E3C">
   
-  <!-- Google Fonts: Playfair Display, Cormorant Garamond & Plus Jakarta Sans -->
+  <!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- Font Awesome 6 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   
-  <!-- Main Quiet Luxury Stylesheet -->
+  <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- Top Subtle Announcement Bar -->
-  <aside class="announcement-bar">
-    KURASI REKOMENDASI PILIHAN TERBAIK &bull; TOKOPEDIA &bull; SHOPEE &bull; TIKTOK SHOP
+  <!-- ==========================================================================
+       1. TOP ANNOUNCEMENT & UTILITY BAR (EXACT MATCH TO GLOWÉRIVE)
+       ========================================================================== -->
+  <aside class="top-bar">
+    <div class="container top-bar-content">
+      <div class="top-bar-left">
+        <i class="fas fa-truck-moving"></i>
+        <span>Rekomendasi Terkurasi &bull; Promo & Gratis Ongkir Marketplace Resmi</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="#featuredSection">Cek Promo</a>
+        <span>|</span>
+        <a href="#aboutSection">FAQ</a>
+        <span>|</span>
+        <a href="#categoriesSection">Kategori Toko</a>
+        <span>|</span>
+        <a href="admin.html">Area Admin</a>
+      </div>
+    </div>
   </aside>
 
   <!-- ==========================================================================
-       HEADER (EDITORIAL MINIMALIST STYLE LIKE OLIVIENNE)
+       2. MAIN NAVBAR (DEEP FOREST TEAL BACKGROUND)
        ========================================================================== -->
   <header class="site-header">
-    <div class="container">
-      <div class="header-content">
-        
-        <!-- Left Nav Links -->
-        <nav class="header-nav-left">
-          <a href="#" class="nav-link active" onclick="event.preventDefault(); app.setCategory('all');">SHOP</a>
-          <a href="#" class="nav-link" onclick="event.preventDefault(); app.setCategory('featured');">COLLECTIONS</a>
-          <a href="#aboutSection" class="nav-link">ABOUT</a>
-        </nav>
-
-        <!-- Center Luxury Serif Logo -->
-        <a href="index.html" class="brand-logo" onclick="event.preventDefault(); app.resetFilters(); window.scrollTo({top: 0, behavior: 'smooth'});">
+    <div class="container header-content">
+      
+      <!-- Brand Logo (Leaf Circle + Clean Typography) -->
+      <a href="index.html" class="brand-logo" onclick="event.preventDefault(); app.resetFilters(); window.scrollTo({top: 0, behavior: 'smooth'});">
+        <div class="brand-icon-circle">
+          <i class="fas fa-leaf"></i>
+        </div>
+        <div class="brand-name-box">
           <span class="brand-title">BNUSHOP</span>
-          <span class="brand-subtitle">Curated Edition</span>
+          <span class="brand-subtitle">Curated Catalog</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Menu -->
+      <nav class="nav-menu">
+        <a href="#" class="nav-link active" onclick="event.preventDefault(); app.resetFilters(); window.scrollTo({top: 0, behavior: 'smooth'});">HOME</a>
+        <a href="#featuredSection" class="nav-link">SHOP</a>
+        <a href="#" class="nav-link" onclick="event.preventDefault(); app.setCategory('featured'); document.getElementById('featuredSection').scrollIntoView({behavior: 'smooth'});">COLLECTIONS</a>
+        <a href="#categoriesSection" class="nav-link">CATEGORIES</a>
+        <a href="#aboutSection" class="nav-link">ABOUT US</a>
+      </nav>
+
+      <!-- Right Utility Icons -->
+      <div class="header-actions">
+        <button type="button" class="btn-header-icon" title="Cari produk" onclick="app.toggleSearchDrawer()">
+          <i class="fas fa-search"></i>
+        </button>
+
+        <a href="admin.html" class="btn-header-icon" title="Login Pemilik / Admin">
+          <i class="far fa-user"></i>
         </a>
 
-        <!-- Right Minimalist Utility Icons -->
-        <div class="header-actions">
-          <span class="currency-badge">IDR / RP</span>
-          
-          <button type="button" class="btn-header-icon" id="searchToggleBtn" title="Cari produk" onclick="app.toggleSearchDrawer()">
-            <i class="fas fa-search"></i>
-          </button>
-
-          <a href="admin.html" class="btn-header-icon" title="Login Pemilik" style="font-size: 0.95rem;">
-            <i class="far fa-user"></i>
-          </a>
-
-          <div class="btn-header-icon" title="Total Koleksi Produk">
-            <i class="fas fa-shopping-bag"></i>
-            <span class="bag-count" id="headerBagCount">0</span>
-          </div>
+        <div class="btn-header-icon" title="Total Koleksi Produk">
+          <i class="fas fa-shopping-bag"></i>
+          <span class="bag-count" id="headerBagCount">0</span>
         </div>
-
       </div>
+
     </div>
 
     <!-- Expandable Search Drawer -->
     <div class="search-drawer" id="searchDrawer">
       <div class="container">
         <div class="search-drawer-inner">
-          <i class="fas fa-search" style="color: var(--text-muted);"></i>
+          <i class="fas fa-search" style="color: var(--teal-accent-light);"></i>
           <input 
             type="text" 
             id="searchInput" 
             class="search-drawer-input" 
-            placeholder="Ketik pencarian barang pilihan..." 
+            placeholder="Cari produk rekomendasi (Tokopedia, Shopee, TikTok Shop)..." 
             autocomplete="off"
           />
           <button type="button" class="search-drawer-close" onclick="app.toggleSearchDrawer(false)">
@@ -89,120 +108,272 @@
   </header>
 
   <!-- ==========================================================================
-       SUB-BAR (BREADCRUMB & ITEM COUNTER LIKE THE SCREENSHOT)
+       3. HERO BANNER (MINT SEAFOAM ORGANIC BOTANICAL SECTION)
        ========================================================================== -->
-  <section class="sub-bar-section">
+  <section class="hero-section">
     <div class="container">
-      <div class="sub-bar-wrapper">
-        <!-- Breadcrumb on Left -->
-        <div class="breadcrumbs">
-          <a href="#" onclick="event.preventDefault(); app.resetFilters();">Shop</a>
-          <span class="separator">&bull;</span>
-          <span id="breadcrumbCategory">Curated Items</span>
-          <span class="separator">&bull;</span>
-          <span class="current" id="breadcrumbView">View All</span>
-        </div>
+      <div class="hero-grid">
+        
+        <!-- Left Content -->
+        <div class="hero-left">
+          <div class="hero-tag">
+            <i class="fas fa-spa"></i> NATURALLY CURATED &bull; PILIHAN TERBAIK
+          </div>
+          <h1 class="hero-title">
+            Pilihan yang tepat, <em>gaya yang memikat.</em>
+          </h1>
+          <p class="hero-desc">
+            Temukan koleksi rekomendasi barang belanja terbaik dan teruji dari Tokopedia, Shopee, dan TikTok Shop dengan jaminan kualitas, ulasan terpercaya, dan harga promo langsung.
+          </p>
 
-        <!-- Counter & Filter on Right -->
-        <div class="sub-bar-right">
-          <span class="items-counter" id="itemsCountDisplay">0 items</span>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <label for="sortSelect" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">Sort:</label>
-            <select id="sortSelect" style="font-size: 0.78rem; font-weight: 600; color: var(--text-main); cursor: pointer;">
-              <option value="recommended">Featured First</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Top Rated</option>
-            </select>
+          <div class="hero-buttons">
+            <a href="#featuredSection" class="btn-hero-primary">
+              SHOP NOW &rarr;
+            </a>
+            <button type="button" class="btn-hero-secondary" onclick="app.setCategory('featured'); document.getElementById('featuredSection').scrollIntoView({behavior: 'smooth'});">
+              <i class="fas fa-star" style="color: var(--teal-accent-dark);"></i> PILIHAN UTAMA
+            </button>
           </div>
         </div>
+
+        <!-- Right Visual (Model & Fresh Botanical Staging) -->
+        <div class="hero-visual-card">
+          <div class="hero-img-frame">
+            <img 
+              src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=700&q=80" 
+              alt="BNUSHOP Curated Aesthetic"
+            />
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
 
   <!-- ==========================================================================
-       CATEGORY NAVIGATION LIST (MINIMALIST HORIZONTAL SCROLL)
+       4. FLOATING VALUE PROPOSITIONS BAR (4-PILL BOX MATCHING SCREENSHOT)
        ========================================================================== -->
-  <nav class="category-nav-section" id="categoryNavSection">
+  <section class="floating-features-section">
     <div class="container">
-      <div class="category-nav-list" id="categoryScroll">
+      <div class="features-card">
+        
+        <div class="feature-item">
+          <div class="feature-icon-circle">
+            <i class="fas fa-seedling"></i>
+          </div>
+          <div>
+            <div class="feature-text-title">100% Terkurasi</div>
+            <div class="feature-text-sub">Aman & Berkualitas</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon-circle">
+            <i class="fas fa-tint"></i>
+          </div>
+          <div>
+            <div class="feature-text-title">Multi-Marketplace</div>
+            <div class="feature-text-sub">Tokopedia, Shopee & TikTok</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon-circle">
+            <i class="fas fa-flask"></i>
+          </div>
+          <div>
+            <div class="feature-text-title">Promo & Diskon</div>
+            <div class="feature-text-sub">Harga Terupdate</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon-circle">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div>
+            <div class="feature-text-title">Link Terverifikasi</div>
+            <div class="feature-text-sub">Langsung ke Toko Resmi</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       5. SHOP BY CATEGORY (CIRCULAR PILLS - EXACT MATCH TO GLOWÉRIVE)
+       ========================================================================== -->
+  <section class="shop-by-category-section" id="categoriesSection">
+    <div class="container">
+      <div class="section-divider-title">
+        <span>SHOP BY CATEGORY</span>
+      </div>
+
+      <div class="category-circles-grid" id="categoryScroll">
         <!-- Di-render dinamis oleh app.js -->
       </div>
     </div>
-  </nav>
+  </section>
 
   <!-- ==========================================================================
-       MAIN PRODUCT GRID
+       6. FEATURED PRODUCTS (MAIN CATALOG GRID - EXACT MATCH TO IMAGE)
        ========================================================================== -->
-  <main class="products-section">
+  <section class="featured-section" id="featuredSection">
     <div class="container">
+      
+      <!-- Section Header Row -->
+      <div class="featured-header-row">
+        <div class="featured-header-left">
+          <h2 class="featured-main-title">FEATURED PRODUCTS</h2>
+          <span class="featured-line-deco"></span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <label for="sortSelect" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Sort:</label>
+            <select id="sortSelect" style="font-size: 0.78rem; font-weight: 700; color: var(--teal-primary); cursor: pointer; border: 1px solid var(--border-color); padding: 0.3rem 0.6rem; border-radius: 6px; background: #fff;">
+              <option value="recommended">Best Match</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Top Rated</option>
+            </select>
+          </div>
+          <button type="button" class="btn-view-all-pill" onclick="app.resetFilters()">
+            VIEW ALL
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Products Grid -->
       <div class="products-grid" id="productsGrid">
         <!-- Kartu produk di-render oleh app.js -->
       </div>
+
     </div>
-  </main>
+  </section>
 
   <!-- ==========================================================================
-       PRODUCT DETAIL MODAL
+       7. SPECIAL OFFER / DISCOUNT BANNER (EXACT MATCH TO GLOWÉRIVE TEAL BANNER)
        ========================================================================== -->
-  <div class="modal-overlay" id="detailModal">
-    <div class="modal-container">
-      <button type="button" class="modal-close-btn" onclick="app.closeDetailModal()" title="Close">
-        <i class="fas fa-times"></i>
-      </button>
-      <div class="modal-content-scroll" id="detailModalContent">
-        <!-- Konten detail diisi dinamis oleh app.js -->
+  <section class="special-offer-section">
+    <div class="container">
+      <div class="offer-banner-card">
+        
+        <!-- Left Product Photo Collage -->
+        <div class="offer-img-box">
+          <img 
+            src="https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80" 
+            alt="Special Curated Products"
+          />
+        </div>
+
+        <!-- Center Text Content -->
+        <div class="offer-content-box">
+          <div class="offer-tag">SPECIAL RECOMMENDATION</div>
+          <h3 class="offer-title">Koleksi Pilihan Terbaik Minggu Ini</h3>
+          <p class="offer-desc">
+            Dapatkan inspirasi produk pilihan berkualitas tinggi dengan link langsung dan promo eksklusif dari marketplace resmi.
+          </p>
+        </div>
+
+        <!-- Right Action Button -->
+        <div class="offer-action-box">
+          <div class="offer-join-title">
+            <i class="far fa-envelope"></i>
+            <span>EXPLORE</span>
+          </div>
+          <div class="offer-join-sub">Update barang baru setiap hari</div>
+          <a href="#featuredSection" class="btn-offer-join">
+            LIHAT SEMUA
+          </a>
+        </div>
+
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- ==========================================================================
-       TOAST NOTIFICATION
+       8. TRUST BADGES FOOTER BAR (4 ICONS WITH LIGHT MINT BACKGROUND)
        ========================================================================== -->
-  <div class="toast" id="toastNotification">
-    <i class="fas fa-check" style="font-size: 0.8rem;"></i>
-    <span id="toastMessage">Tautan berhasil disalin</span>
-  </div>
+  <section class="trust-badges-bar">
+    <div class="container">
+      <div class="trust-badges-grid">
+        
+        <div class="trust-item">
+          <div class="trust-icon"><i class="fas fa-truck"></i></div>
+          <div>
+            <div class="trust-title">FREE SHIPPING INFO</div>
+            <div class="trust-sub">Info Promo Gratis Ongkir Toko</div>
+          </div>
+        </div>
+
+        <div class="trust-item">
+          <div class="trust-icon"><i class="fas fa-check-shield"></i></div>
+          <div>
+            <div class="trust-title">SECURE PAYMENT</div>
+            <div class="trust-sub">Transaksi Aman di Marketplace</div>
+          </div>
+        </div>
+
+        <div class="trust-item">
+          <div class="trust-icon"><i class="fas fa-sync-alt"></i></div>
+          <div>
+            <div class="trust-title">VERIFIED PRODUCTS</div>
+            <div class="trust-sub">Rekomendasi Teruji & Original</div>
+          </div>
+        </div>
+
+        <div class="trust-item">
+          <div class="trust-icon"><i class="fas fa-headset"></i></div>
+          <div>
+            <div class="trust-title">ACTIVE SUPPORT</div>
+            <div class="trust-sub">Update Promo Setiap Hari</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
 
   <!-- ==========================================================================
-       FOOTER
+       9. SITE FOOTER (DEEP FOREST TEAL)
        ========================================================================== -->
   <footer class="site-footer" id="aboutSection">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-logo">Olivienne</div>
-        <p class="footer-desc">
-          Koleksi kurasi rekomendasi belanja pilihan berkualitas tinggi. Setiap barang dipilih secara cermat dengan mengutamakan kualitas, estetika modern, dan nilai terbaik dari Tokopedia, Shopee, TikTok Shop, serta toko resmi terpercaya.
-        </p>
-        <div class="footer-links">
-          <a href="#" onclick="event.preventDefault(); app.setCategory('all'); window.scrollTo({top: 0, behavior: 'smooth'});">Shop All</a>
-          <a href="#" onclick="event.preventDefault(); app.setCategory('featured'); window.scrollTo({top: 0, behavior: 'smooth'});">Featured Selection</a>
-          <a href="#" onclick="event.preventDefault(); app.setCategory('fashion'); window.scrollTo({top: 0, behavior: 'smooth'});">Fashion</a>
-          <a href="#" onclick="event.preventDefault(); app.setCategory('elektronik'); window.scrollTo({top: 0, behavior: 'smooth'});">Electronics</a>
-          <a href="#" onclick="event.preventDefault(); app.setCategory('rumah-tangga'); window.scrollTo({top: 0, behavior: 'smooth'});">Home Living</a>
-          <a href="admin.html" style="color: var(--text-light); font-weight: 500;">Owner Login</a>
-        </div>
-        <div class="footer-copy">
-          &copy; 2026 Olivienne Curated Catalog. All rights reserved. 
-          <br><small style="color: #A1A1AA;">*Harga dan stok dapat berubah sewaktu-waktu mengikuti marketplace resmi.</small>
-        </div>
+    <div class="container footer-content">
+      <div class="footer-brand">BNUSHOP</div>
+      <p class="footer-desc">
+        Katalog kurasi rekomendasi belanja pilihan berkualitas tinggi dengan estetika modern, simpel, dan natural. Setiap barang dipilih secara cermat dari Tokopedia, Shopee, TikTok Shop, serta toko resmi terpercaya.
+      </p>
+      
+      <div class="footer-links">
+        <a href="#" onclick="event.preventDefault(); app.resetFilters(); window.scrollTo({top: 0, behavior: 'smooth'});">Home</a>
+        <a href="#featuredSection">All Products</a>
+        <a href="#" onclick="event.preventDefault(); app.setCategory('featured'); document.getElementById('featuredSection').scrollIntoView({behavior: 'smooth'});">Featured Selection</a>
+        <a href="#categoriesSection">Categories</a>
+        <a href="admin.html">Admin Portal</a>
+      </div>
+
+      <div class="footer-copy">
+        &copy; 2026 BNUSHOP Curated Catalog. All rights reserved. 
+        <br><small style="color: #6C978E;">*Harga dan ketersediaan stok dapat berubah sewaktu-waktu mengikuti ketentuan masing-masing marketplace.</small>
       </div>
     </div>
   </footer>
 
   <!-- ==========================================================================
-       MOBILE BOTTOM NAVIGATION BAR
+       10. MOBILE BOTTOM NAVIGATION
        ========================================================================== -->
   <nav class="mobile-nav-bar">
     <button type="button" class="nav-item active" onclick="app.resetFilters(); window.scrollTo({top: 0, behavior: 'smooth'});">
       <i class="fas fa-home"></i>
-      <span>SHOP</span>
+      <span>HOME</span>
     </button>
-    <button type="button" class="nav-item" onclick="app.setCategory('featured'); window.scrollTo({top: 0, behavior: 'smooth'});">
+    <button type="button" class="nav-item" onclick="app.setCategory('featured'); document.getElementById('featuredSection').scrollIntoView({behavior: 'smooth'});">
       <i class="fas fa-star"></i>
-      <span>CURATED</span>
+      <span>FEATURED</span>
     </button>
-    <button type="button" class="nav-item" onclick="document.getElementById('categoryNavSection').scrollIntoView({behavior: 'smooth'});">
+    <button type="button" class="nav-item" onclick="document.getElementById('categoriesSection').scrollIntoView({behavior: 'smooth'});">
       <i class="fas fa-th-large"></i>
       <span>CATEGORY</span>
     </button>
@@ -213,9 +384,28 @@
   </nav>
 
   <!-- ==========================================================================
-       SCRIPTS (SUPABASE & APP)
+       11. PRODUCT DETAIL MODAL
        ========================================================================== -->
-  <!-- Supabase JS Client v2 via CDN -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-container">
+      <button type="button" class="modal-close-btn" onclick="app.closeDetailModal()" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="modal-content-scroll" id="detailModalContent">
+        <!-- Diisi dinamis oleh app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       12. TOAST NOTIFICATION
+       ========================================================================== -->
+  <div class="toast" id="toastNotification">
+    <i class="fas fa-check" style="font-size: 0.8rem;"></i>
+    <span id="toastMessage">Tautan berhasil disalin</span>
+  </div>
+
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/data.js"></script>

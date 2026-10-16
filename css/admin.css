@@ -3,18 +3,18 @@
    ========================================================================== */
 
 :root {
-  --admin-primary: #18181B;
-  --admin-primary-dark: #27272A;
-  --admin-secondary: #27272A;
-  --admin-accent: #18181B;
+  --admin-primary: #0F3E3C;
+  --admin-primary-dark: #0A2D2B;
+  --admin-secondary: #134E4A;
+  --admin-accent: #14B8A6;
   --admin-success: #10B981;
   --admin-warning: #D97706;
   --admin-danger: #DC2626;
   
-  --admin-bg: #FAF9F5;
+  --admin-bg: #F4F9F8;
   --admin-surface: #FFFFFF;
   --admin-card: #FFFFFF;
-  --admin-border: #E7E5DF;
+  --admin-border: #DDEEE9;
   
   --admin-text-main: #0F172A;
   --admin-text-muted: #64748B;
