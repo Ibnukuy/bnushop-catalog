@@ -39,6 +39,18 @@ class CatalogApp {
     } catch (e) {}
   }
 
+  updateWishlistBadges() {
+    const count = this.wishlist ? this.wishlist.length : 0;
+    if (this.headerWishlistCount) {
+      this.headerWishlistCount.textContent = count;
+      this.headerWishlistCount.style.display = count > 0 ? 'flex' : 'none';
+    }
+    if (this.mobileWishlistCount) {
+      this.mobileWishlistCount.textContent = count;
+      this.mobileWishlistCount.style.display = count > 0 ? 'inline-flex' : 'none';
+    }
+  }
+
   toggleWishlist(productId) {
     const id = Number(productId);
     const index = this.wishlist.indexOf(id);
@@ -47,9 +59,10 @@ class CatalogApp {
       this.showToast('Dihapus dari daftar favorit');
     } else {
       this.wishlist.push(id);
-      this.showToast('Ditambahkan ke daftar favorit!');
+      this.showToast('Ditambahkan ke favorit! ❤️');
     }
     this.saveWishlist();
+    this.updateWishlistBadges();
     this.renderProducts();
   }
 
@@ -121,6 +134,8 @@ class CatalogApp {
     
     // Header Bag Count
     this.headerBagCount = document.getElementById('headerBagCount');
+    this.headerWishlistCount = document.getElementById('headerWishlistCount');
+    this.mobileWishlistCount = document.getElementById('mobileWishlistCount');
     
     // Modal Detail
     this.detailModal = document.getElementById('detailModal');
@@ -129,6 +144,8 @@ class CatalogApp {
     // Toast
     this.toastEl = document.getElementById('toastNotification');
     this.toastMessage = document.getElementById('toastMessage');
+
+    this.updateWishlistBadges();
   }
 
   initEvents() {
@@ -172,11 +189,41 @@ class CatalogApp {
     
     if (shouldOpen) {
       this.searchDrawer.classList.add('active');
+      this.setActiveNavItem('navItemSearch');
       if (this.searchInput) {
-        this.searchInput.focus();
+        setTimeout(() => this.searchInput.focus(), 120);
       }
     } else {
       this.searchDrawer.classList.remove('active');
+    }
+  }
+
+  setActiveNavItem(navId) {
+    document.querySelectorAll('.mobile-nav-bar .nav-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    const item = document.getElementById(navId);
+    if (item) item.classList.add('active');
+  }
+
+  scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (id === 'categoriesSection') {
+      this.setActiveNavItem('navItemCategory');
+    }
+  }
+
+  showWishlist() {
+    this.activeCategory = 'wishlist';
+    this.setActiveNavItem('navItemWishlist');
+    this.renderCategories();
+    this.renderProducts();
+    const section = document.getElementById('featuredSection');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
@@ -248,7 +295,9 @@ class CatalogApp {
   getFilteredProducts() {
     let result = [...this.products];
 
-    if (this.activeCategory === 'featured') {
+    if (this.activeCategory === 'wishlist') {
+      result = result.filter(item => this.wishlist.includes(Number(item.id)));
+    } else if (this.activeCategory === 'featured') {
       result = result.filter(item => item.isFeatured === true);
     } else if (this.activeCategory !== 'all') {
       result = result.filter(item => item.category === this.activeCategory);
@@ -294,6 +343,24 @@ class CatalogApp {
     }
 
     if (filtered.length === 0) {
+      if (this.activeCategory === 'wishlist') {
+        this.productsGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1.5rem; background: #FFFFFF; border-radius: 16px; border: 1px dashed #DDEEE9;">
+            <div style="width: 58px; height: 58px; margin: 0 auto 1.25rem; border-radius: 50%; background: #FFF1F2; display: flex; align-items: center; justify-content: center; color: #E11D48; font-size: 1.5rem;">
+              <i class="far fa-heart"></i>
+            </div>
+            <h3 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--teal-primary); margin-bottom: 0.5rem;">Belum Ada Produk Favorit</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem; max-width: 360px; margin-left: auto; margin-right: auto;">
+              Klik tombol hati (♡) pada produk pilihan untuk menyimpannya di sini agar mudah dicek kembali.
+            </p>
+            <button class="btn-hero-primary" onclick="app.resetFilters()">
+              Jelajahi Rekomendasi
+            </button>
+          </div>
+        `;
+        return;
+      }
+
       this.productsGrid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1.5rem; background: #FFFFFF; border-radius: 16px; border: 1px dashed #DDEEE9;">
           <h3 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--teal-primary); margin-bottom: 0.5rem;">Tidak Ada Produk</h3>
@@ -403,6 +470,7 @@ class CatalogApp {
     this.searchQuery = '';
     if (this.searchInput) this.searchInput.value = '';
     this.toggleSearchDrawer(false);
+    this.setActiveNavItem('navItemHome');
     this.renderCategories();
     this.renderProducts();
   }
